@@ -50,6 +50,22 @@
 
 ![逻辑图释1-水龙头](arch/令牌桶算法-带优先级/物理架构.png)
 
+## 使用例子
+
+```java
+JedisPool jedisPool = new JedisPool("127.0.0.1", 6379);
+String originKey = "rateLimit-test";
+double rate = 100;
+int maxPermits = 100;
+client = new RateLimiterClient(jedisPool, originKey, rate, maxPermits);
+boolean acquired = client.tryAcquire(); //获取1个token，可以拿走最后一个令牌，没有令牌时不等待
+boolean acquired = client.tryAcquire(2, 0, 300); //获取2个token, 如果等待时间在300毫米以内，则预定令牌，并计算和等待实际需要的时间
+boolean lowPriority = client.tryAcquire(1, 60, 0); //获取1个token，如果剩余token不足最大token的60%则获取不到
+boolean lowPriorityWithWait = client.tryAcquire(1, 50, 500); //获取1个token，如果剩余token不足最大token的50%则等待一段时间在获取，将500ms分成3段，重试3次
+```
+
+
+
 ## QA
 
 1. 能否应对瞬间并发？
